@@ -12,8 +12,8 @@ import kotlin.concurrent.timer
 import kotlin.math.abs
 
 val numDots = 2000
-val dotRadius = 10.0
-val dotOpacity = 0.5
+val dotRadius = 2.0
+val dotOpacity = 1.0
 val maxDotCoord = 400
 val dotPositionCutoff = 1.0
 //val myrand = Random(421)
@@ -94,7 +94,7 @@ class MainView : View("Hello TornadoFX") {
                 circle.centerX = xx  * maxDotCoord
                 circle.centerY = yy * maxDotCoord
                 val gfil = (allDots[index].gravity + 1.0) / 4.0
-                circle.fill = Color.color(if (gfil < 0.0) 0.0 else if (gfil > 1.0) 1.0 else gfil, allDots[index].spin / 2.0 + 0.5, 0.0, dotOpacity)
+//                circle.fill = Color.color(if (gfil < 0.0) 0.0 else if (gfil > 1.0) 1.0 else gfil, allDots[index].spin / 2.0 + 0.5, 0.0, dotOpacity)
 //                circle.fill = Color.color(allDots[index].gravity / 2.0 + 0.5, allDots[index].spin / 2.0 + 0.5, 0.0)
 //                circle.fill = Color.hsb(allDots[index].gravity / 2.0 + 0.5, 1.0, allDots[index].spin / 2.0 + 0.5)
             }
