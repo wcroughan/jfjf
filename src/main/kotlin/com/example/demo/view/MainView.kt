@@ -18,6 +18,7 @@ val maxDotRadius = 5.0
 val dotOpacity = 1.0
 val maxDotCoord = 400
 val dotPositionCutoff = 1.0
+val wallBounceFactor = 0.25
 val dotInitialSpread = 0.98
 //val dotInitialSpread = 0.68
 //val myrand = Random(421)
@@ -26,7 +27,7 @@ var cvFactor = 0.2
 var radFactor = 4000.0
 val spinValChangeSpeed = 0.00005
 //val spinValChangeSpeed = 0.0
-val homeDragSpeed = 0.0
+val homeDragSpeed = 0.5
 
 val physicsFrameRate = 30.0
 val physicsSpeedFactor = 0.03
@@ -34,7 +35,7 @@ var deltaT = physicsSpeedFactor / physicsFrameRate
 val deltaDeltaT = deltaT / 100.0 / physicsFrameRate
 val velFactor = 0.05
 val pullFactor = 3.4
-val spinFactor = 0.0
+val spinFactor = 10.0
 val centerPullFactor = 200.2
 //val centerPullFactor = 0.0
 val frictionFactor = 0.99
@@ -110,9 +111,21 @@ class MainView : View("Hello TornadoFX") {
             it.vely *= frictionFactor
 
             it.x += it.velx * deltaT * velFactor - mx
-            if (it.x < -dotPositionCutoff) it.x = -dotPositionCutoff else if (it.x > dotPositionCutoff) it.x = dotPositionCutoff
+            if (it.x < -dotPositionCutoff) {
+                it.x = -dotPositionCutoff
+                it.velx = -it.velx * wallBounceFactor
+            } else if (it.x > dotPositionCutoff) {
+                it.x = dotPositionCutoff
+                it.velx = -it.velx * wallBounceFactor
+            }
             it.y += it.vely * deltaT * velFactor - my
-            if (it.y < -dotPositionCutoff) it.y = -dotPositionCutoff else if (it.y > dotPositionCutoff) it.y = dotPositionCutoff
+            if (it.y < -dotPositionCutoff) {
+                it.y = -dotPositionCutoff
+                it.vely = -it.vely * wallBounceFactor
+            } else if (it.y > dotPositionCutoff) {
+                it.y = dotPositionCutoff
+                it.vely = -it.vely * wallBounceFactor
+            }
 
         }
 
@@ -161,11 +174,11 @@ class MainView : View("Hello TornadoFX") {
         var r = Math.min(1.0, cvc * 3.0)
         var g = Math.min(1.0, Math.max(0.0, cvc * 3.0 - 1.0))
         var b = Math.min(1.0, Math.max(0.0, cvc * 3.0 - 2.0))
-        if (b > 0.5) {
-            g = 2.0 - 2.0 * b
-            r = 2.0 - 2.0 * b
-            b = 1.0 - b
-        }
+//        if (b > 0.5) {
+//            g = 2.0 - 2.0 * b
+//            r = 2.0 - 2.0 * b
+//            b = 1.0 - b
+//        }
         return Color.color(r,g,b)
     }
 
