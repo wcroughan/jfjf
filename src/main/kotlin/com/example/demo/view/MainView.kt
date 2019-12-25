@@ -24,7 +24,7 @@ val dotInitialSpread = 0.98
 val myrand = ThreadLocalRandom.current()
 var cvFactor = 0.2
 var radFactor = 4000.0
-val spinValChangeSpeed = 0.0005
+val spinValChangeSpeed = 0.00005
 //val spinValChangeSpeed = 0.0
 val homeDragSpeed = 0.0
 
@@ -33,20 +33,20 @@ val physicsSpeedFactor = 0.03
 var deltaT = physicsSpeedFactor / physicsFrameRate
 val deltaDeltaT = deltaT / 100.0 / physicsFrameRate
 val velFactor = 0.05
-val pullFactor = 2.4
-val spinFactor = 1.4
+val pullFactor = 3.4
+val spinFactor = 0.0
 val centerPullFactor = 200.2
 //val centerPullFactor = 0.0
 val frictionFactor = 0.99
-val pushFactor = 3.0
+val pushFactor = 0.6
 val pushValFadeRate = 0.75
 val pushValJump = 100.0
-val pushJumpProb = 0.98
+val pushJumpProb = 0.99
 val pullValFadeRate = 0.85
 val pullValJump = 400.0
-val pullJumpProb = 0.975
-val superPullJumpProb = 0.9995
-val superPullJumpVal = 5000.0
+val pullJumpProb = 0.995
+//val superPullJumpProb = 0.9995
+//val superPullJumpVal = 5000.0
 
 class MainView : View("Hello TornadoFX") {
 //    val rand = Random(420)
@@ -119,7 +119,7 @@ class MainView : View("Hello TornadoFX") {
         allDots.forEach {
             it.pushVal = if (myrand.nextDouble() < pushJumpProb) it.pushVal * pushValFadeRate else pushValJump
             it.pullVal = if (myrand.nextDouble() < pullJumpProb) it.pullVal * pullValFadeRate else pullValJump
-            it.pullVal = if (myrand.nextDouble() < superPullJumpProb) it.pullVal else superPullJumpVal
+//            it.pullVal = if (myrand.nextDouble() < superPullJumpProb) it.pullVal else superPullJumpVal
             it.spinVal += it.spinValVel
             it.spinValVel += -it.spinVal * spinValChangeSpeed
             val newx0 = it.x0 + homeDragSpeed * (it.x - it.x0)
