@@ -14,37 +14,39 @@ import kotlin.math.sign
 
 val numDots = 1936
 val minDotRadius = 2.0
-val maxDotRadius = 10.0
+val maxDotRadius = 5.0
 val dotOpacity = 1.0
 val maxDotCoord = 400
 val dotPositionCutoff = 1.0
-//val dotInitialSpread = 0.98
-val dotInitialSpread = 0.68
+val dotInitialSpread = 0.98
+//val dotInitialSpread = 0.68
 //val myrand = Random(421)
 val myrand = ThreadLocalRandom.current()
 var cvFactor = 0.2
 var radFactor = 4000.0
-val spinValChangeSpeed = 0.00005
+val spinValChangeSpeed = 0.0005
 //val spinValChangeSpeed = 0.0
-val homeDragSpeed = 0.2
+val homeDragSpeed = 0.0
 
 val physicsFrameRate = 30.0
-val physicsSpeedFactor = 0.33
+val physicsSpeedFactor = 0.03
 var deltaT = physicsSpeedFactor / physicsFrameRate
 val deltaDeltaT = deltaT / 100.0 / physicsFrameRate
 val velFactor = 0.05
-val pullFactor = 1.4
-val spinFactor = 15.4
-//val centerPullFactor = 200.2
-val centerPullFactor = 0.0
+val pullFactor = 2.4
+val spinFactor = 1.4
+val centerPullFactor = 200.2
+//val centerPullFactor = 0.0
 val frictionFactor = 0.99
-val pushFactor = 1.0
+val pushFactor = 3.0
 val pushValFadeRate = 0.75
 val pushValJump = 100.0
-val pushJumpProb = 0.99
-val pullValFadeRate = 0.9
+val pushJumpProb = 0.98
+val pullValFadeRate = 0.85
 val pullValJump = 400.0
-val pullJumpProb = 0.995
+val pullJumpProb = 0.975
+val superPullJumpProb = 0.9995
+val superPullJumpVal = 5000.0
 
 class MainView : View("Hello TornadoFX") {
 //    val rand = Random(420)
@@ -59,7 +61,7 @@ class MainView : View("Hello TornadoFX") {
         var vely = myrand.nextDouble()
         var pushVal = myrand.nextDouble(0.5, 2.0)
         var pullVal = myrand.nextDouble(0.5, 2.0)
-        var spinVal = myrand.nextDouble(-0.4, 1.0)
+        var spinVal = myrand.nextDouble(-0.0, 1.0)
         var spinValVel = 0.0
         var fillColor = Color.BLACK
         var colorMapVal = 0.0
@@ -67,12 +69,12 @@ class MainView : View("Hello TornadoFX") {
         var radius = minDotRadius
     }
 
-    var allDots = Array(numDots) { Dot() }
-//    var allDots = (0 until numDots).map { i ->
-//        val ndsr = Math.floor(Math.sqrt(numDots.toDouble())).toInt()
-//        Dot((-1 + 2.0*(i.rem(ndsr).toDouble() + 0.5) / ndsr.toDouble()) * dotInitialSpread,
-//                (-1 + 2.0*(Math.floorDiv(i, ndsr).toDouble() + 0.5) / ndsr.toDouble())* dotInitialSpread)
-//    }
+//    var allDots = Array(numDots) { Dot() }
+    var allDots = (0 until numDots).map { i ->
+        val ndsr = Math.floor(Math.sqrt(numDots.toDouble())).toInt()
+        Dot((-1 + 2.0*(i.rem(ndsr).toDouble() + 0.5) / ndsr.toDouble()) * dotInitialSpread,
+                (-1 + 2.0*(Math.floorDiv(i, ndsr).toDouble() + 0.5) / ndsr.toDouble())* dotInitialSpread)
+    }
 
     fun updateDots() {
         allDots.forEach { dot1 ->
@@ -117,6 +119,7 @@ class MainView : View("Hello TornadoFX") {
         allDots.forEach {
             it.pushVal = if (myrand.nextDouble() < pushJumpProb) it.pushVal * pushValFadeRate else pushValJump
             it.pullVal = if (myrand.nextDouble() < pullJumpProb) it.pullVal * pullValFadeRate else pullValJump
+            it.pullVal = if (myrand.nextDouble() < superPullJumpProb) it.pullVal else superPullJumpVal
             it.spinVal += it.spinValVel
             it.spinValVel += -it.spinVal * spinValChangeSpeed
             val newx0 = it.x0 + homeDragSpeed * (it.x - it.x0)
@@ -131,9 +134,9 @@ class MainView : View("Hello TornadoFX") {
     fun updateDotColors() {
 
         allDots.forEach { d ->
-//            val cv = (abs(d.velx) + abs(d.vely)) * cvFactor
-            val cv = (d.spinVal + 0.5) * cvFactor
-            val cvc = Math.min(1.0, Math.max(0.0, cv))
+            val cv = (abs(d.velx) + abs(d.vely)) * cvFactor
+//            val cv = (d.spinVal + 0.5) * cvFactor
+            val cvc = Math.min(1.0, Math.max(0.0, cv * 2.0))
 //            val cv2 = Math.atan(d.pullVal / d.pushVal) / (Math.PI / 2.0)
             val d02 = ((d.x - d.x0) * (d.x - d.x0) + (d.y - d.y0) * (d.y - d.y0)) * radFactor
             val d02c = Math.min(1.0, Math.max(0.0, d02))
@@ -153,12 +156,17 @@ class MainView : View("Hello TornadoFX") {
 
     fun colorMapValue(cvc: Double): Color {
 //        return Color.color(1.0-cvc, cvc, 0.0)
-        return Color.color(cvc, cvc, 0.0)
+//        return Color.color(cvc, cvc*0.8, 0.0)
 
-//        val r = Math.min(1.0, cvc * 3.0)
-//        var g = Math.min(1.0, Math.max(0.0, cvc * 3.0 - 1.0))
-//        var b = Math.min(1.0, Math.max(0.0, cvc * 3.0 - 2.0))
-//        return Color.color(r,g,b)
+        var r = Math.min(1.0, cvc * 3.0)
+        var g = Math.min(1.0, Math.max(0.0, cvc * 3.0 - 1.0))
+        var b = Math.min(1.0, Math.max(0.0, cvc * 3.0 - 2.0))
+        if (b > 0.5) {
+            g = 2.0 - 2.0 * b
+            r = 2.0 - 2.0 * b
+            b = 1.0 - b
+        }
+        return Color.color(r,g,b)
     }
 
     var dotMoveTimer = timer(daemon = true, initialDelay = 1500, period = (1000.0/ physicsFrameRate).toLong()) {
@@ -194,7 +202,7 @@ class MainView : View("Hello TornadoFX") {
             padding = Insets(20.0)
 
             rectangle {
-                fill = Color.BLUE
+                fill = Color.BLACK
                 x = -maxDotCoord.toDouble() - maxDotRadius
                 y = -maxDotCoord.toDouble() - maxDotRadius
                 width = 2.0*maxDotCoord.toDouble() + 2.0 * maxDotRadius
