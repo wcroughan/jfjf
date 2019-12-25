@@ -1,0 +1,157 @@
+package com.example.demo.view
+
+import com.example.demo.app.Styles
+import javafx.animation.AnimationTimer
+import javafx.animation.Interpolator
+import javafx.geometry.Insets
+import javafx.scene.paint.Color
+import javafx.scene.shape.Circle
+import javafx.util.Duration
+import tornadofx.*
+import java.util.*
+import kotlin.concurrent.timer
+import kotlin.math.abs
+import kotlin.random.Random
+
+val dotRadius = 2.0
+val maxDotCoord = 200
+val myrand = Random(421)
+
+val physicsFrameRate = 10.0
+val animationFrameRate = 20.0
+val velFactor = 0.05
+val centerPullFactor = 0.01
+
+class MainView : View("Hello TornadoFX") {
+    val numDots = 1000
+//    val rand = Random(420)
+
+    class dot {
+        var x = 0.0
+        var y = 0.0
+        var velx = 0.0
+        var vely = 0.0
+        var gravity = 0.0
+
+        init {
+            do {
+                x = myrand.nextDouble(-0.3,0.3)
+                y = myrand.nextDouble(-0.3,0.3)
+            } while (x*x + y*y > maxDotCoord*maxDotCoord)
+            velx = myrand.nextDouble()
+            vely = myrand.nextDouble()
+            gravity = myrand.nextDouble(-1.0,1.0)
+        }
+    }
+
+    var allDots = Array(numDots) { dot() }
+
+    fun updateDots() {
+        allDots.forEach { dot1 ->
+//            dot1.vely = myrand.nextDouble(-1.0,1.0) - dot1.y
+//            dot1.velx = myrand.nextDouble(-1.0,1.0) - dot1.x
+
+            allDots.forEach { dot2 ->
+                if (dot1.x != dot2.x || dot1.y != dot2.y) {
+                    val gfactor = (dot2.gravity + dot1.gravity) /
+                            Math.sqrt(Math.pow(dot1.x - dot2.x, 2.0) + Math.pow(dot1.y - dot2.y, 2.0)) *
+                            0.005
+                    dot1.velx += (dot2.x - dot1.x) * gfactor
+                    dot1.vely += (dot2.y - dot1.y) * gfactor
+                }
+            }
+        }
+
+        val mx = allDots.sumByDouble { it.x } / numDots.toDouble()
+        val my = allDots.sumByDouble { it.y } / numDots.toDouble()
+
+        allDots.forEach {
+            it.x += it.velx / physicsFrameRate * velFactor - mx
+            if (it.x < -2.0) it.x = -2.0 else if (it.x > 2.0) it.x = 2.0
+            it.y += it.vely / physicsFrameRate * velFactor - my
+            if (it.y < -2.0) it.y = -2.0 else if (it.y > 2.0) it.y = 2.0
+
+            it.velx -= it.x * centerPullFactor
+            it.vely -= it.y * centerPullFactor
+
+            it.gravity = -1.0 + abs(it.x) + abs(it.y)
+        }
+    }
+
+    fun rotateDots() {
+//        println("${allDots[0].state[0]}")
+        allDots.forEach {
+//            var newState = it.state
+//            val theta = it.state[2] / 5.0
+//            val a11 = Math.cos(theta)
+//            val a12 = Math.sin(theta)
+//            val a21 = -Math.sin(theta)
+//            val a22 = Math.cos(theta)
+//            newState[0] = a11 * it.state[0] + a12 * it.state[1]
+//            newState[1] = a21 * it.state[0] + a22 * it.state[1]
+//            newState.copyInto(it.state)
+        }
+    }
+
+    var dotMoveTimer = timer(daemon = true, initialDelay = 1500, period = (1000.0/ physicsFrameRate).toLong()) {
+        updateDots()
+//        println("${allDots[0].vely}, ${allDots[0].y}")
+    }
+
+//    var animationTimer = FXTimerTask({
+//
+//    }, Timer(true))
+//    init {
+//        animationTimer.timer.
+//    }
+
+//    var dots : List<Circle> = emptyList()
+//    var animationTimer = timer(daemon = true, initialDelay = 500, period = (1000.0 / animationFrameRate).toLong()) {
+//        timeline {
+//            keyframe(Duration.seconds(1.0 / animationFrameRate)) {
+//                (0 until numDots).map { doti ->
+//                    keyvalue(dots[doti].centerXProperty(), maxDotCoord.toDouble() * allDots[doti].x, interpolator = Interpolator.LINEAR)
+//                    keyvalue(dots[doti].centerYProperty(), maxDotCoord.toDouble() * allDots[doti].y, interpolator = Interpolator.LINEAR)
+//                }
+//            }
+//        }
+//
+//    }
+
+
+    override val root = stackpane {
+        group {
+            padding = Insets(20.0)
+//            prefWidth(maxDotX.toDouble())
+//            prefHeight(maxDotY.toDouble())
+
+            rectangle {
+                fill = Color.BLUE
+                x = -2.0*maxDotCoord.toDouble()
+                y = -2.0*maxDotCoord.toDouble()
+                width = 4.0*maxDotCoord.toDouble()
+                height = 4.0*maxDotCoord.toDouble()
+            }
+
+            val dots = List(numDots) { circle {
+                fill = Color.ORANGE
+                centerX = (1..maxDotCoord).random().toDouble()
+                centerY = (1..maxDotCoord).random().toDouble()
+                radius = dotRadius
+            }}
+
+//            timer(daemon = true, initialDelay = 20, period = (1000.0/ animationFrameRate).toLong()) {
+//                println("Updating positions")
+                timeline {
+                    keyframe(Duration.seconds(1.0/ animationFrameRate)) {
+                        (0 until numDots).map { doti ->
+                            keyvalue(dots[doti].centerXProperty(), maxDotCoord.toDouble() * allDots[doti].x, interpolator = Interpolator.LINEAR)
+                            keyvalue(dots[doti].centerYProperty(), maxDotCoord.toDouble() * allDots[doti].y, interpolator = Interpolator.LINEAR)
+//                            keyvalue(dots[doti].centerYProperty(), (1..maxDotY).random().toDouble(), interpolator = Interpolator.EASE_BOTH)
+                        }
+                    }
+                }
+//            }
+        }
+    }
+}
