@@ -12,7 +12,7 @@ import kotlin.concurrent.timer
 import kotlin.math.abs
 
 val numDots = 2000
-val dotRadius = 15.0
+val dotRadius = 10.0
 val dotOpacity = 0.5
 val maxDotCoord = 400
 val dotPositionCutoff = 1.0
@@ -21,8 +21,8 @@ val myrand = ThreadLocalRandom.current()
 
 val physicsFrameRate = 30.0
 val physicsSpeedFactor = 0.1
-val deltaT = physicsSpeedFactor / physicsFrameRate
-val animationFrameRate = 20.0
+var deltaT = physicsSpeedFactor / physicsFrameRate
+val deltaDeltaT = deltaT / 100.0 / physicsFrameRate
 val velFactor = 0.05
 val centerPullFactor = 0.2
 
@@ -77,6 +77,11 @@ class MainView : View("Hello TornadoFX") {
     var dotMoveTimer = timer(daemon = true, initialDelay = 1500, period = (1000.0/ physicsFrameRate).toLong()) {
         if (isRunning)
             updateDots()
+    }
+
+    var changeDeltaTTimer = timer(daemon = true, initialDelay = 1500, period = (1000.0 / physicsFrameRate).toLong()) {
+        if (isRunning)
+            deltaT += deltaDeltaT
     }
 
     var dots = emptyList<Circle>()
