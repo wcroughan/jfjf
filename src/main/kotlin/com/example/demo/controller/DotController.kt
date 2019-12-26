@@ -41,7 +41,7 @@ val pullJumpProb = 0.995
 //val superPullJumpProb = 0.9995
 //val superPullJumpVal = 5000.0
 
-var targetAvgVel = 400.0
+var targetAvgVel = 300.0
 var velCorrectionFactor = 1.0
 
 class DotController : Controller() {
@@ -94,12 +94,13 @@ class DotController : Controller() {
         }
 
         val avgvel = totvel / numDots
+        val skewness = allDots.map { abs(it.vely) + abs(it.velx) }.count { it < avgvel*0.9 }.toDouble() / numDots.toDouble()
         velCorrectionFactor += Math.max(Math.min(0.05 * velCorrectionFactor, .05 * velCorrectionFactor * (targetAvgVel - avgvel)), -0.05 * velCorrectionFactor)
-        println("$avgvel, $velCorrectionFactor")
+//        println("$avgvel, $velCorrectionFactor, $skewness")
 
         allDots.forEach {
-            it.vely *= velCorrectionFactor
-            it.velx *= velCorrectionFactor
+            it.vely *= velCorrectionFactor * (skewness * 2.0)
+            it.velx *= velCorrectionFactor * (skewness * 2.0)
 
             it.x += it.velx * deltaT * velFactor - mx
             if (it.x < -dotPositionCutoff) {
