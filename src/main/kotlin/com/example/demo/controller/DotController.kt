@@ -41,7 +41,7 @@ val pullJumpProb = 0.995
 //val superPullJumpProb = 0.9995
 //val superPullJumpVal = 5000.0
 
-var targetAvgVel = 300.0
+var targetAvgVel = 100.0
 var velCorrectionFactor = 1.0
 
 class DotController : Controller() {
