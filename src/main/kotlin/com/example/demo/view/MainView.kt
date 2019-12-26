@@ -27,7 +27,7 @@ var cvFactor = 0.2
 var radFactor = 4000.0
 val spinValChangeSpeed = 0.00002
 //val spinValChangeSpeed = 0.0
-val homeDragSpeed = 0.5
+val homeDragSpeed = 0.0
 
 val physicsFrameRate = 30.0
 val physicsSpeedFactor = 0.03
