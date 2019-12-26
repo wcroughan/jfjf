@@ -41,6 +41,9 @@ val pullJumpProb = 0.995
 //val superPullJumpProb = 0.9995
 //val superPullJumpVal = 5000.0
 
+var targetAvgVel = 400.0
+var velCorrectionFactor = 1.0
+
 class DotController : Controller() {
     val numDots = 1936
     val audioColorMap = AudioColorMap()
@@ -79,12 +82,24 @@ class DotController : Controller() {
 
         val mx = allDots.sumByDouble { it.x } / numDots.toDouble()
         val my = allDots.sumByDouble { it.y } / numDots.toDouble()
+        var totvel = 0.0
 
         allDots.forEach {
             it.velx -= (it.x - it.x0) * centerPullFactor
             it.vely -= (it.y - it.y0) * centerPullFactor
             it.velx *= frictionFactor
             it.vely *= frictionFactor
+
+            totvel += abs(it.velx) + abs(it.vely)
+        }
+
+        val avgvel = totvel / numDots
+        velCorrectionFactor += Math.max(Math.min(0.05 * velCorrectionFactor, .05 * velCorrectionFactor * (targetAvgVel - avgvel)), -0.05 * velCorrectionFactor)
+        println("$avgvel, $velCorrectionFactor")
+
+        allDots.forEach {
+            it.vely *= velCorrectionFactor
+            it.velx *= velCorrectionFactor
 
             it.x += it.velx * deltaT * velFactor - mx
             if (it.x < -dotPositionCutoff) {
