@@ -25,7 +25,7 @@ val dotInitialSpread = 0.98
 val myrand = ThreadLocalRandom.current()
 var cvFactor = 0.2
 var radFactor = 4000.0
-val spinValChangeSpeed = 0.00005
+val spinValChangeSpeed = 0.00002
 //val spinValChangeSpeed = 0.0
 val homeDragSpeed = 0.5
 
@@ -35,7 +35,7 @@ var deltaT = physicsSpeedFactor / physicsFrameRate
 val deltaDeltaT = deltaT / 100.0 / physicsFrameRate
 val velFactor = 0.05
 val pullFactor = 3.4
-val spinFactor = 10.0
+val spinFactor = 100.0
 val centerPullFactor = 200.2
 //val centerPullFactor = 0.0
 val frictionFactor = 0.99
@@ -162,7 +162,7 @@ class MainView : View("Hello TornadoFX") {
         }
 
         cvFactor += cvFactor * 0.05 * (1.0 - allDots.map { it.colorMapVal }.max()!!)
-        println("[${allDots.map { it.colorMapVal }.min()}, ${allDots.map { it.colorMapVal }.max()}]")
+//        println("[${allDots.map { it.colorMapVal }.min()}, ${allDots.map { it.colorMapVal }.max()}]")
         radFactor += radFactor * 0.05 * (1.0 - allDots.map { it.radiusVal }.max()!!)
 //        println("[${allDots.map { it.radiusVal }.min()}, ${allDots.map { it.radiusVal }.max()}]")
     }
