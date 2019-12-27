@@ -18,11 +18,22 @@ import kotlin.math.sign
 val minDotRadius = 2.0
 val maxDotRadius = 5.0
 val maxDotCoord = 400
+val angleRefreshRate = 30.0
+val angleRPS = 0.05
+val deltaAngle = angleRPS / angleRefreshRate * Math.PI * 2.0
+
 class MainView : View("Hello TornadoFX") {
 //    val rand = Random(420)
     val controller: DotController by inject()
 
     var dots = emptyList<Circle>()
+    var angle = 0.0
+    var isRunning = false
+
+    val angleTimer = timer(null, true, 0, (1000.0 / angleRefreshRate).toLong()) {
+        if (isRunning)
+            angle = (angle + deltaAngle).rem(2.0*Math.PI)
+    }
 
     val animationTimer = object : AnimationTimer() {
         override fun handle(now: Long) {
@@ -30,7 +41,9 @@ class MainView : View("Hello TornadoFX") {
                 val d = controller.allDots[index]
                 val xx = if (d.x < -1.0) -1.0 else if (d.x > 1.0) 1.0 else d.x
                 val yy = if (d.y < -1.0) -1.0 else if (d.y > 1.0) 1.0 else d.y
-                circle.centerX = xx  * maxDotCoord
+                val zz = if (d.z < -1.0) -1.0 else if (d.z > 1.0) 1.0 else d.z
+
+                circle.centerX = (xx * Math.sin(angle) + zz * Math.cos(angle)) * maxDotCoord / 1.36
                 circle.centerY = yy * maxDotCoord
                 circle.fill = d.fillColor
                 circle.radius = d.radius
@@ -56,7 +69,8 @@ class MainView : View("Hello TornadoFX") {
             }}
 
             onMouseClicked = EventHandler<MouseEvent> {
-                controller.isRunning = !controller.isRunning
+                controller.playPause()
+                isRunning = !isRunning
             }
         }
     }

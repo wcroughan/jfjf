@@ -41,8 +41,11 @@ val pullJumpProb = 0.995
 //val superPullJumpProb = 0.9995
 //val superPullJumpVal = 5000.0
 
-var targetAvgVel = 100.0
+var targetAvgVel = 200.0
 var velCorrectionFactor = 1.0
+var velCorrectionFactorSpeed = 0.02
+
+var moveHomeRate = 0.25
 
 class DotController : Controller() {
     val numDots = 1936
@@ -95,7 +98,7 @@ class DotController : Controller() {
 
         val avgvel = totvel / numDots
         val skewness = allDots.map { abs(it.vely) + abs(it.velx) }.count { it < avgvel*0.9 }.toDouble() / numDots.toDouble()
-        velCorrectionFactor += Math.max(Math.min(0.05 * velCorrectionFactor, .05 * velCorrectionFactor * (targetAvgVel - avgvel)), -0.05 * velCorrectionFactor)
+        velCorrectionFactor += Math.max(Math.min(velCorrectionFactorSpeed * velCorrectionFactor, velCorrectionFactorSpeed * velCorrectionFactor * (targetAvgVel - avgvel)), -velCorrectionFactorSpeed * velCorrectionFactor)
 //        println("$avgvel, $velCorrectionFactor, $skewness")
 
         allDots.forEach {
@@ -118,7 +121,15 @@ class DotController : Controller() {
                 it.y = dotPositionCutoff
                 it.vely = -it.vely * wallBounceFactor
             }
+            val d02 = ((it.x - it.x0) * (it.x - it.x0) + (it.y - it.y0) * (it.y - it.y0)) * radFactor
+            val d02c = Math.min(1.0, Math.max(0.0, d02))
+            it.z = it.z0 + d02c * 2.0 - 1.0
+        }
 
+        val mz = allDots.sumByDouble { it.z } / numDots.toDouble()
+
+        allDots.forEach {
+            it.z -= mz
         }
 
         allDots.forEach {
@@ -148,7 +159,7 @@ class DotController : Controller() {
 //            d.fillColor = Color.color(1.0-cvc, 1.0-cvc, 0.0 )
 //                circle.radius = dotRadius + (1.0 - cvc) * 2.0
             d.fillColor = audioColorMap.colorMapValue(cvc)
-            d.radius = minDotRadius + d02c * (maxDotRadius - minDotRadius)
+            d.radius = maxDotRadius - d02c * (maxDotRadius - minDotRadius)
             d.colorMapVal = cv
             d.radiusVal = d02
         }
@@ -169,6 +180,20 @@ class DotController : Controller() {
     var changeDeltaTTimer = timer(daemon = true, initialDelay = 1500, period = (1000.0 / physicsFrameRate).toLong()) {
         if (isRunning)
             deltaT += deltaDeltaT
+    }
+
+    var moveHomeTimer = timer(daemon = true, initialDelay = 1500, period = (1000.0 / moveHomeRate).toLong()) {
+        allDots.forEach {
+//            it.x0 = it.x
+//            it.y0 = it.y
+            it.z0 = it.z / 2.0
+        }
+        audioColorMap.useNextColorMap()
+    }
+
+    fun playPause() {
+        isRunning = !isRunning
+        audioColorMap.isRunning = isRunning
     }
 
 }
