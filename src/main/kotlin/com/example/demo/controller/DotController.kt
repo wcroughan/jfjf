@@ -43,14 +43,15 @@ val pullJumpProb = 0.995
 //val superPullJumpProb = 0.9995
 //val superPullJumpVal = 5000.0
 
-var targetAvgVel = 200.0
+var targetAvgVel = 500.0
 var velCorrectionFactor = 1.0
 var velCorrectionFactorSpeed = 0.02
 
 var moveHomeRate = 0.25
 
 class DotController : Controller() {
-    val numDots = 1936
+//    val numDots = 1936
+    val numDots = 100
     val audioColorMap = AudioColorMap()
 
     var isRunning = false
@@ -59,9 +60,10 @@ class DotController : Controller() {
 //        val ndsr = Math.floor(Math.sqrt(numDots.toDouble())).toInt()
 //        Dot((-1 + 2.0*(i.rem(ndsr).toDouble() + 0.5) / ndsr.toDouble()) * dotInitialSpread,
 //                (-1 + 2.0*(Math.floorDiv(i, ndsr).toDouble() + 0.5) / ndsr.toDouble())* dotInitialSpread)
+        val polarAngle = myrand.nextDouble(0.0, Math.PI)
+//        val polarAngle = myrand.nextDouble(-Math.PI, Math.PI)
         val azimuthAngle = myrand.nextDouble(0.0, 2.0*Math.PI)
-        val polarAngle = myrand.nextDouble(-Math.PI, Math.PI)
-        Dot(sin(polarAngle) * cos(azimuthAngle), sin(polarAngle) * sin(azimuthAngle), cos(azimuthAngle))
+        Dot(0.3*sin(polarAngle) * cos(azimuthAngle), 0.3*sin(polarAngle) * 0.3*sin(azimuthAngle), cos(polarAngle))
     }
 
     fun updateDots() {
