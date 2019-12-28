@@ -7,7 +7,9 @@ import tornadofx.*
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.concurrent.timer
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.sign
+import kotlin.math.sin
 
 val dotPositionCutoff = 1.0
 val wallBounceFactor = 0.25
@@ -57,6 +59,9 @@ class DotController : Controller() {
         val ndsr = Math.floor(Math.sqrt(numDots.toDouble())).toInt()
         Dot((-1 + 2.0*(i.rem(ndsr).toDouble() + 0.5) / ndsr.toDouble()) * dotInitialSpread,
                 (-1 + 2.0*(Math.floorDiv(i, ndsr).toDouble() + 0.5) / ndsr.toDouble())* dotInitialSpread)
+//        val azimuthAngle = myrand.nextDouble(0.0, 2.0*Math.PI)
+//        val polarAngle = myrand.nextDouble(-Math.PI, Math.PI)
+//        Dot(sin(polarAngle) * cos(azimuthAngle), sin(polarAngle) * sin(azimuthAngle), cos(azimuthAngle))
     }
 
     fun updateDots() {
