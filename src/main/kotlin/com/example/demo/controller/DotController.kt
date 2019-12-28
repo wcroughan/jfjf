@@ -56,12 +56,12 @@ class DotController : Controller() {
     var isRunning = false
     //    var allDots = Array(numDots) { Dot() }
     var allDots = (0 until numDots).map { i ->
-        val ndsr = Math.floor(Math.sqrt(numDots.toDouble())).toInt()
-        Dot((-1 + 2.0*(i.rem(ndsr).toDouble() + 0.5) / ndsr.toDouble()) * dotInitialSpread,
-                (-1 + 2.0*(Math.floorDiv(i, ndsr).toDouble() + 0.5) / ndsr.toDouble())* dotInitialSpread)
-//        val azimuthAngle = myrand.nextDouble(0.0, 2.0*Math.PI)
-//        val polarAngle = myrand.nextDouble(-Math.PI, Math.PI)
-//        Dot(sin(polarAngle) * cos(azimuthAngle), sin(polarAngle) * sin(azimuthAngle), cos(azimuthAngle))
+//        val ndsr = Math.floor(Math.sqrt(numDots.toDouble())).toInt()
+//        Dot((-1 + 2.0*(i.rem(ndsr).toDouble() + 0.5) / ndsr.toDouble()) * dotInitialSpread,
+//                (-1 + 2.0*(Math.floorDiv(i, ndsr).toDouble() + 0.5) / ndsr.toDouble())* dotInitialSpread)
+        val azimuthAngle = myrand.nextDouble(0.0, 2.0*Math.PI)
+        val polarAngle = myrand.nextDouble(-Math.PI, Math.PI)
+        Dot(sin(polarAngle) * cos(azimuthAngle), sin(polarAngle) * sin(azimuthAngle), cos(azimuthAngle))
     }
 
     fun updateDots() {
@@ -71,44 +71,56 @@ class DotController : Controller() {
 
             allDots.forEach { dot2 ->
                 if (dot1.x != dot2.x || dot1.y != dot2.y) {
-                    val dist = Math.sqrt(Math.pow(dot1.x - dot2.x, 2.0) + Math.pow(dot1.y - dot2.y, 2.0))
+                    val dist = Math.sqrt(Math.pow(dot1.x - dot2.x, 2.0) + Math.pow(dot1.y - dot2.y, 2.0) + Math.pow(dot1.z - dot2.z, 2.0))
                     val dminus = dist*2.0 - 3.0
                     val pullconst = pullFactor * dminus*dminus / numDots * dot2.pullVal
                     dot1.velx += (dot2.x - dot1.x) * pullconst
                     dot1.vely += (dot2.y - dot1.y) * pullconst
+                    dot1.velz += (dot2.z - dot1.z) * pullconst
 
-                    val spinconst = spinFactor * dminus * dminus / numDots * dot2.spinVal
-                    dot1.velx += (dot2.y - dot1.y) * dot2.spinVal * spinconst
-                    dot1.vely -= (dot2.x - dot1.x) * dot2.spinVal * spinconst
+                    val spinconstxy = spinFactor * dminus * dminus / numDots * dot2.spinValXY
+                    dot1.velx += (dot2.y - dot1.y) * dot2.spinValXY * spinconstxy
+                    dot1.vely -= (dot2.x - dot1.x) * dot2.spinValXY * spinconstxy
+                    val spinconstyz = spinFactor * dminus * dminus / numDots * dot2.spinValYZ
+                    dot1.vely += (dot2.z - dot1.z) * dot2.spinValYZ * spinconstyz
+                    dot1.velz -= (dot2.y - dot1.y) * dot2.spinValYZ * spinconstyz
+                    val spinconstzx = spinFactor * dminus * dminus / numDots * dot2.spinValZX
+                    dot1.velz += (dot2.x - dot1.x) * dot2.spinValZX * spinconstzx
+                    dot1.velx -= (dot2.z - dot1.z) * dot2.spinValZX * spinconstzx
 
                     val pushconst = -dminus*dminus*dminus / numDots * pushFactor * dot2.pushVal
                     dot1.velx -= sign(dot2.x - dot1.x) * pushconst
                     dot1.vely -= sign(dot2.y - dot1.y) * pushconst
+                    dot1.velz -= sign(dot2.z - dot1.z) * pushconst
                 }
             }
         }
 
         val mx = allDots.sumByDouble { it.x } / numDots.toDouble()
         val my = allDots.sumByDouble { it.y } / numDots.toDouble()
+        val mz = allDots.sumByDouble { it.z } / numDots.toDouble()
         var totvel = 0.0
 
         allDots.forEach {
             it.velx -= (it.x - it.x0) * centerPullFactor
             it.vely -= (it.y - it.y0) * centerPullFactor
+            it.velz -= (it.z - it.z0) * centerPullFactor
             it.velx *= frictionFactor
             it.vely *= frictionFactor
+            it.velz *= frictionFactor
 
-            totvel += abs(it.velx) + abs(it.vely)
+            totvel += abs(it.velx) + abs(it.vely) + abs(it.velz)
         }
 
         val avgvel = totvel / numDots
-        val skewness = allDots.map { abs(it.vely) + abs(it.velx) }.count { it < avgvel*0.9 }.toDouble() / numDots.toDouble()
+        val skewness = allDots.map { abs(it.velx) + abs(it.vely) + abs(it.velz) }.count { it < avgvel*0.9 }.toDouble() / numDots.toDouble()
         velCorrectionFactor += Math.max(Math.min(velCorrectionFactorSpeed * velCorrectionFactor, velCorrectionFactorSpeed * velCorrectionFactor * (targetAvgVel - avgvel)), -velCorrectionFactorSpeed * velCorrectionFactor)
 //        println("$avgvel, $velCorrectionFactor, $skewness")
 
         allDots.forEach {
-            it.vely *= velCorrectionFactor * (skewness * 2.0)
             it.velx *= velCorrectionFactor * (skewness * 2.0)
+            it.vely *= velCorrectionFactor * (skewness * 2.0)
+            it.velz *= velCorrectionFactor * (skewness * 2.0)
 
             it.x += it.velx * deltaT * velFactor - mx
             if (it.x < -dotPositionCutoff) {
@@ -118,6 +130,7 @@ class DotController : Controller() {
                 it.x = dotPositionCutoff
                 it.velx = -it.velx * wallBounceFactor
             }
+
             it.y += it.vely * deltaT * velFactor - my
             if (it.y < -dotPositionCutoff) {
                 it.y = -dotPositionCutoff
@@ -126,29 +139,42 @@ class DotController : Controller() {
                 it.y = dotPositionCutoff
                 it.vely = -it.vely * wallBounceFactor
             }
-            val d02 = ((it.x - it.x0) * (it.x - it.x0) + (it.y - it.y0) * (it.y - it.y0)) * radFactor
-            val d02c = Math.min(1.0, Math.max(0.0, d02))
-            it.z = it.z0 + d02c * 2.0 - 1.0
+
+            it.z += it.velz * deltaT * velFactor - mz
+            if (it.z < -dotPositionCutoff) {
+                it.z = -dotPositionCutoff
+                it.velz = -it.velz * wallBounceFactor
+            } else if (it.z > dotPositionCutoff) {
+                it.z = dotPositionCutoff
+                it.velz = -it.velz * wallBounceFactor
+            }
+//            val d02 = ((it.x - it.x0) * (it.x - it.x0) + (it.y - it.y0) * (it.y - it.y0)) * radFactor
+//            val d02c = Math.min(1.0, Math.max(0.0, d02))
+//            it.z = it.z0 + d02c * 2.0 - 1.0
         }
 
-        val mz = allDots.sumByDouble { it.z } / numDots.toDouble()
+//        val mz = allDots.sumByDouble { it.z } / numDots.toDouble()
+
+//        allDots.forEach {
+//            it.z -= mz
+//        }
 
         allDots.forEach {
-            it.z -= mz
-        }
-
-        allDots.forEach {
-            it.pushVal = if (myrand.nextDouble() < pushJumpProb) it.pushVal * pushValFadeRate else pushValJump
-            it.pullVal = if (myrand.nextDouble() < pullJumpProb) it.pullVal * pullValFadeRate else pullValJump
+//            it.pushVal = if (myrand.nextDouble() < pushJumpProb) it.pushVal * pushValFadeRate else pushValJump
+//            it.pullVal = if (myrand.nextDouble() < pullJumpProb) it.pullVal * pullValFadeRate else pullValJump
 //            it.pullVal = if (myrand.nextDouble() < superPullJumpProb) it.pullVal else superPullJumpVal
-            it.spinVal += it.spinValVel
-            it.spinValVel += -it.spinVal * spinValChangeSpeed
+            it.spinValXY += it.spinValVel
+            it.spinValYZ += it.spinValVel
+            it.spinValZX += it.spinValVel
+            it.spinValVel += -it.spinValXY * spinValChangeSpeed
             val newx0 = it.x0 + homeDragSpeed * (it.x - it.x0)
             val newy0 = it.y0 + homeDragSpeed * (it.y - it.y0)
-            val stayBig = (abs(it.x0) + abs(it.y0)) / (abs(newx0) + abs(newy0))
+            val newz0 = it.z0 + homeDragSpeed * (it.z - it.z0)
+            val stayBig = (abs(it.x0) + abs(it.y0) + abs(it.z0)) / (abs(newx0) + abs(newy0) + abs(newz0))
 
             it.x0 = newx0 * stayBig
             it.y0 = newy0 * stayBig
+            it.z0 = newz0 * stayBig
         }
     }
 
