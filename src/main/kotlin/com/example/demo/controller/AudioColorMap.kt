@@ -132,7 +132,9 @@ class AudioColorMap {
             c2 = r
             c3 = g
         }
-        val col = Color.color(c1, c2, c3)
+        var col = Color.color(c1, c2, c3)
+        if (col.brightness < 0.5)
+            col = col.deriveColor(0.0, 1.0, 0.0, 1.0)
         return col.deriveColor(360 * colorShiftAmount, 1.0, 1.0, 1.0)
 
 

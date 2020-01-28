@@ -17,7 +17,7 @@ val dotInitialSpread = 0.98
 //val dotInitialSpread = 0.68
 //val myrand = Random(421)
 val myrand = ThreadLocalRandom.current()
-var cvFactor = 0.2
+var cvFactor = 0.003
 var radFactor = 4000.0
 val spinValChangeSpeed = 0.00002
 //val spinValChangeSpeed = 0.0
@@ -28,12 +28,12 @@ val physicsSpeedFactor = 0.03
 var deltaT = physicsSpeedFactor / physicsFrameRate
 val deltaDeltaT = deltaT / 100.0 / physicsFrameRate
 val velFactor = 0.05
-val pullFactor = 3.4
-val spinFactor = 10.0
-val centerPullFactor = 200.2
+val pullFactor = 30.4
+val spinFactor = 30.0
+val centerPullFactor = 2.2
 //val centerPullFactor = 0.0
 val frictionFactor = 0.99
-val pushFactor = 0.6
+val pushFactor = 20.6
 val pushValFadeRate = 0.75
 val pushValJump = 100.0
 val pushJumpProb = 0.99
@@ -51,7 +51,10 @@ var moveHomeRate = 0.25
 
 class DotController : Controller() {
 //    val numDots = 1936
-    val numDots = 100
+//    val numDots = 100
+//    val numDots = 196
+    val numDots = 10
+    val numLines = 15
     val audioColorMap = AudioColorMap()
 
     var isRunning = false
@@ -63,7 +66,14 @@ class DotController : Controller() {
         val polarAngle = myrand.nextDouble(0.0, Math.PI)
 //        val polarAngle = myrand.nextDouble(-Math.PI, Math.PI)
         val azimuthAngle = myrand.nextDouble(0.0, 2.0*Math.PI)
-        Dot(0.3*sin(polarAngle) * cos(azimuthAngle), 0.3*sin(polarAngle) * 0.3*sin(azimuthAngle), cos(polarAngle))
+        Dot(i, 0.3*sin(polarAngle) * cos(azimuthAngle), 0.3*sin(polarAngle) *sin(azimuthAngle), 0.3*cos(polarAngle))
+    }.also { dl ->
+        while (dl.sumBy { it.numOutEdges } < numLines) {
+            val d = dl.random()
+            d.outEdges.add(
+                    (0 until numDots).filter { it != d.index }.random()
+            )
+        }
     }
 
     fun updateDots() {
@@ -115,14 +125,14 @@ class DotController : Controller() {
         }
 
         val avgvel = totvel / numDots
-        val skewness = allDots.map { abs(it.velx) + abs(it.vely) + abs(it.velz) }.count { it < avgvel*0.9 }.toDouble() / numDots.toDouble()
-        velCorrectionFactor += Math.max(Math.min(velCorrectionFactorSpeed * velCorrectionFactor, velCorrectionFactorSpeed * velCorrectionFactor * (targetAvgVel - avgvel)), -velCorrectionFactorSpeed * velCorrectionFactor)
+//        val skewness = allDots.map { abs(it.velx) + abs(it.vely) + abs(it.velz) }.count { it < avgvel*0.9 }.toDouble() / numDots.toDouble()
+//        velCorrectionFactor += Math.max(Math.min(velCorrectionFactorSpeed * velCorrectionFactor, velCorrectionFactorSpeed * velCorrectionFactor * (targetAvgVel - avgvel)), -velCorrectionFactorSpeed * velCorrectionFactor)
 //        println("$avgvel, $velCorrectionFactor, $skewness")
 
         allDots.forEach {
-            it.velx *= velCorrectionFactor * (skewness * 2.0)
-            it.vely *= velCorrectionFactor * (skewness * 2.0)
-            it.velz *= velCorrectionFactor * (skewness * 2.0)
+//            it.velx *= velCorrectionFactor * (skewness * 2.0)
+//            it.vely *= velCorrectionFactor * (skewness * 2.0)
+//            it.velz *= velCorrectionFactor * (skewness * 2.0)
 
             it.x += it.velx * deltaT * velFactor - mx
             if (it.x < -dotPositionCutoff) {
@@ -198,7 +208,7 @@ class DotController : Controller() {
         }
 
         cvFactor += cvFactor * 0.05 * (1.0 - allDots.map { it.colorMapVal }.max()!!)
-//        println("[${allDots.map { it.colorMapVal }.min()}, ${allDots.map { it.colorMapVal }.max()}]")
+        println("[${allDots.map { it.colorMapVal }.min()}, ${allDots.map { it.colorMapVal }.max()}]")
         radFactor += radFactor * 0.05 * (1.0 - allDots.map { it.radiusVal }.max()!!)
 //        println("[${allDots.map { it.radiusVal }.min()}, ${allDots.map { it.radiusVal }.max()}]")
     }

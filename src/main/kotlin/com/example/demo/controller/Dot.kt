@@ -3,7 +3,8 @@ package com.example.demo.controller
 import com.example.demo.view.minDotRadius
 import javafx.scene.paint.Color
 
-class Dot(var x0 : Double = myrand.nextDouble(-1.0, 1.0) * dotInitialSpread,
+class Dot(val index: Int,
+          var x0 : Double = myrand.nextDouble(-1.0, 1.0) * dotInitialSpread,
           var y0 : Double = myrand.nextDouble(-1.0, 1.0) * dotInitialSpread,
           var z0 : Double = 0.0) {
     //        var x = myrand.nextDouble(-1.0,1.0)
@@ -24,5 +25,9 @@ class Dot(var x0 : Double = myrand.nextDouble(-1.0, 1.0) * dotInitialSpread,
     var colorMapVal = 0.0
     var radiusVal = 0.0
     var radius = minDotRadius
+    var outEdges = mutableSetOf<Int>()
+
+    var numOutEdges = 0
+        get() = outEdges.size
 }
 
